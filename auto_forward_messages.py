@@ -127,7 +127,7 @@ def auto_forward(client,chat_ids):
 		try:
 			os.system('clear || cls')
 			print(f"Forwarding: {chat_ids.index(message_id)+1}/{len(chat_ids)}")
-			client.copy_messages(
+			client.send_messages(
 				from_chat_id=chats["from_chat_id"],
 				chat_id=chats["to_chat_id"],
 				message_ids=message_id
