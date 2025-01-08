@@ -121,24 +121,44 @@ def get_ids(client):
 
 	return chat_ids
 
-def auto_forward(client,chat_ids):
-	os.makedirs('posteds',exist_ok=True)
-	for message_id in chat_ids:
-		try:
-			os.system('clear || cls')
-			print(f"Forwarding: {chat_ids.index(message_id)+1}/{len(chat_ids)}")
-			client.copy_messages(
-				from_chat_id=chats["from_chat_id"],
-				chat_id=chats["to_chat_id"],
-				message_ids=message_id
-			)
-			with open(CACHE_FILE,"w") as j:
-				json.dump(message_id,j)
-			if message_id != chat_ids[-1]:
-				time.sleep(delay)
-		except MessageIdInvalid:
-			pass
-	print("\nTask completed!\n")
+def auto_forward(client, chat_ids):
+    os.makedirs('posteds', exist_ok=True)
+    for message_id in chat_ids:
+        try:
+            os.system('clear || cls')
+            print(f"Processing: {chat_ids.index(message_id)+1}/{len(chat_ids)}")
+
+            # Obter a mensagem original
+            message = client.get_messages(chats["from_chat_id"], message_id)
+
+            if message.text:  # Mensagem de texto
+                client.send_message(
+                    chat_id=chats["to_chat_id"],
+                    text=message.text,
+                    parse_mode="html"
+                )
+            elif message.media:  # Mídias como fotos, vídeos, etc.
+                client.copy_message(
+                    chat_id=chats["to_chat_id"],
+                    from_chat_id=chats["from_chat_id"],
+                    message_id=message_id
+                )
+            else:
+                print(f"Tipo de mensagem não suportado: {message_id}")
+
+            # Salvar progresso no arquivo de cache
+            with open(CACHE_FILE, "w") as j:
+                json.dump(message_id, j)
+
+            if message_id != chat_ids[-1]:
+                time.sleep(delay)
+        except MessageIdInvalid:
+            print(f"Mensagem inválida: {message_id}, ignorando...")
+        except Exception as e:
+            print(f"Erro ao processar mensagem {message_id}: {e}")
+
+    print("\nTarefa concluída!\n")
+
 
 def countdown():
 	time_sec = 4*3600
